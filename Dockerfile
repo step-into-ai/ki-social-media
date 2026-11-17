@@ -1,11 +1,12 @@
 FROM python:3.12-slim-bookworm
-ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 CODY_DATA=/data HOME=/data/reach
+ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 CODY_DATA=/data HOME=/data/reach \
+    XDG_CONFIG_HOME=/data/reach/.config XDG_CACHE_HOME=/data/reach/.cache
 RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg nodejs npm ca-certificates chromium cmake g++ make \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-RUN groupadd --gid 10001 kisocial && useradd --uid 10001 --gid 10001 --no-create-home kisocial
+RUN groupadd --gid 10001 kisocial && useradd --uid 10001 --gid 10001 --home-dir /data/reach --no-create-home kisocial
 COPY collector/ collector/
 COPY tools/ tools/
 USER 10001:10001

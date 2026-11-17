@@ -1,11 +1,14 @@
 """Prepare this instance's optional X channel with the regular packaged Chromium."""
 import os
+import pathlib
 import shutil
 import subprocess
 import sys
 
 
 def main():
+    for name in ('HOME', 'XDG_CONFIG_HOME', 'XDG_CACHE_HOME'):
+        if os.environ.get(name):pathlib.Path(os.environ[name]).mkdir(parents=True, exist_ok=True, mode=0o700)
     chromium = shutil.which('chromium')
     if not chromium:
         raise SystemExit('Install regular Chromium in this environment before preparing X.')
@@ -20,7 +23,7 @@ def main():
         print('Regular Chromium launch exit code: ' + str(probe.returncode), file=sys.stderr)
         # Sandboxing diagnostics contain no cookies, URLs, profile state or account contents.
         for line in probe.stderr.splitlines():
-            if any(word in line.lower() for word in ('sandbox', 'namespace', 'operation not permitted')):
+            if any(word in line.lower() for word in ('sandbox', 'namespace', 'operation not permitted', 'crashpad', 'fatal', 'read-only', 'permission denied')):
                 print(line[:500], file=sys.stderr)
         raise SystemExit('X browser setup did not succeed. Check container browser-sandbox support.')
     print('Regular Chromium and X toolkit are ready; no user session was imported.')

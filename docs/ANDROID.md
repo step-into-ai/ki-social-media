@@ -42,3 +42,12 @@ interne Kotlin-Namespace `de.cody.social` ist kein Konto und keine Serverbindung
 
 Der offizielle Build enthält weder eine Standard-Serveradresse noch API- oder
 Plattformschlüssel. Kopplung erfolgt erst beim ersten Start über HTTPS.
+
+Öffentlicher SHA-256-Fingerabdruck des offiziellen Signierzertifikats:
+
+```text
+cc82ecddf31fbfc7040c2b64342747254736d4bef44548759eda0e95b52e04e0
+```
+
+Release-Dateien enthalten `SHA256SUMS` und `RELEASE-INFO.json`. Der Fingerabdruck
+bezeichnet das öffentliche Zertifikat; der private Schlüssel wird nicht ausgeliefert.

@@ -40,10 +40,10 @@ jobs:
       - run: python tools/container_smoke.py
       - name: Optional toolkit installation
         run: docker compose exec -T backend agent-reach version
-      - name: Pinned local speech-language setup
-        run: docker compose exec -T backend python tools/setup_language.py
       - name: Prepare optional X tools without any user session
         run: docker compose exec -T backend python tools/setup_x.py
+      - name: Pinned local speech-language setup
+        run: docker compose exec -T backend python tools/setup_language.py
       - name: Stop this disposable instance
         if: always()
         run: docker compose down
