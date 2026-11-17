@@ -5,7 +5,7 @@ if(-not $env:ANDROID_HOME){throw 'Set ANDROID_HOME to your Android SDK.'}
 $project=$PSScriptRoot
 Push-Location -LiteralPath $project
 try {
-    if($DebugOnly){$tasks=@(':app:testDebugUnitTest',':app:assembleDebug',':app:lintDebug')}
+    if($DebugOnly){$tasks=@(':app:testReleaseUnitTest',':app:assembleDebug',':app:lintDebug')}
     else {$tasks=@(':app:testReleaseUnitTest',':app:assembleRelease',':app:lintRelease')}
     & .\gradlew.bat @tasks --console=plain
     if($LASTEXITCODE -ne 0){throw 'Android build failed.'}

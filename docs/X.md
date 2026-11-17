@@ -9,10 +9,15 @@ Die Containerinstallation enthält Python, Chromium und die Grundwerkzeuge.
 Einmalig im eigenen Container die Twitter/X-Erweiterung vorbereiten:
 
 ```bash
-docker compose exec backend agent-reach add twitter
+docker compose exec backend python tools/setup_x.py
 ```
 
-Agent Reach lädt dafür seine eigenen gepinnten Browser-/Node-Werkzeuge nach
+Der Helfer verwendet das reguläre mitgelieferte Chromium. Ein eingechecktes
+Playwright-Seccomp-Profil erlaubt die für dessen Sandbox benötigten User-Namespaces;
+der Dienst bleibt ohne Root, ohne zusätzliche Linux-Capabilities und mit
+`no-new-privileges`. Kein `--no-sandbox`, privilegierter Container oder offener
+Debugger wird benötigt. Der Host muss unprivilegierte User-Namespaces unterstützen.
+Agent Reach lädt seine eigenen Node-/Erweiterungswerkzeuge nach
 `data/reach`. Diese Daten bleiben privat. Der Browser hat keine öffentliche
 Debugging-/VNC-Route. Docker setzt keinen Remote-Desktop auf.
 

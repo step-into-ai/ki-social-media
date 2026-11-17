@@ -7,6 +7,9 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   python:
     runs-on: ubuntu-24.04
@@ -40,7 +43,7 @@ jobs:
       - name: Pinned local speech-language setup
         run: docker compose exec -T backend python tools/setup_language.py
       - name: Prepare optional X tools without any user session
-        run: docker compose exec -T backend agent-reach add twitter
+        run: docker compose exec -T backend python tools/setup_x.py
       - name: Stop this disposable instance
         if: always()
         run: docker compose down
@@ -58,5 +61,5 @@ jobs:
           packages: 'platform-tools platforms;android-36.1 build-tools;36.0.0'
           log-accepted-android-sdk-licenses: false
       - uses: gradle/actions/setup-gradle@v4
-      - run: chmod +x gradlew && ./gradlew :app:testDebugUnitTest :app:assembleDebug :app:lintDebug --console=plain
+      - run: chmod +x gradlew && ./gradlew :app:testReleaseUnitTest :app:assembleDebug :app:lintDebug --console=plain
         working-directory: android

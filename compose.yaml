@@ -22,6 +22,10 @@ services:
       CODY_DATA: /data
       CODY_REACH_BIN: /usr/local/bin/agent-reach
       HOME: /data/reach
+    security_opt:
+      - no-new-privileges:true
+      - seccomp=./deploy/browser-seccomp.json
+    shm_size: 256m
     ports:
       - "127.0.0.1:${CODY_PORT:-9131}:9131"
     healthcheck:

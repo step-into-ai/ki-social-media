@@ -9,6 +9,7 @@ their respective licenses. No ownership of third-party platform content is claim
 | Kotlin runtime | Android language runtime | Apache-2.0, https://github.com/JetBrains/kotlin |
 | OkHttp / Okio | Android networking | Apache-2.0, https://github.com/square/okhttp and https://github.com/square/okio |
 | Gradle wrapper | Build tooling | Apache-2.0, https://github.com/gradle/gradle |
+| Playwright Docker seccomp profile | Chromium user-namespace sandbox support | Apache-2.0, https://github.com/microsoft/playwright/blob/main/utils/docker/seccomp_profile.json |
 | Agent Reach 1.6.1 | Optional platform toolkit | MIT, https://github.com/Panniantong/Agent-Reach/tree/v1.6.1 |
 | yt-dlp | Metadata and optional audio extraction | Unlicense; see dependencies/exceptions, https://github.com/yt-dlp/yt-dlp |
 | whisper.cpp 1.9.5 | Optional local language/transcription CLI | MIT, https://github.com/ggml-org/whisper.cpp |

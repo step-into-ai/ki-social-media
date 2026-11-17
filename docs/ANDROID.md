@@ -12,10 +12,12 @@ benutzerspezifischen Verzeichnisse sind im Projekt fest eingetragen.
 ```bash
 cd android
 chmod +x gradlew
-./gradlew :app:testDebugUnitTest :app:assembleDebug :app:lintDebug
+./gradlew :app:testReleaseUnitTest :app:assembleDebug :app:lintDebug
 ```
 
 Windows: `android/Build.ps1 -DebugOnly` aus dem Projektverzeichnis.
+Die Unit-Tests sind im Projekt für die Release-Variante angelegt; dafür wird kein
+signiertes Release-Paket und kein privater Release-Schlüssel benötigt.
 
 ## Eigener signierter Release
 
