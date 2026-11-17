@@ -39,7 +39,7 @@ git clone https://github.com/step-into-ai/ki-social-media.git
 cd ki-social-media
 python3 tools/manage.py init --url https://feed.example.org
 docker compose build
-docker compose run --rm --no-deps --user 0 backend python tools/manage.py prepare-data
+docker compose run --rm --no-deps --user 0 --cap-add CHOWN --cap-add FOWNER backend python tools/manage.py prepare-data
 docker compose up -d
 docker compose exec backend python tools/manage.py doctor
 docker compose exec backend python tools/manage.py pair

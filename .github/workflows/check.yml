@@ -32,7 +32,7 @@ jobs:
       - run: python tools/manage.py init --url https://test.example.invalid
       - run: docker compose config --quiet
       - run: docker compose build
-      - run: docker compose run --rm --no-deps --user 0 backend python tools/manage.py prepare-data
+      - run: docker compose run --rm --no-deps --user 0 --cap-add CHOWN --cap-add FOWNER backend python tools/manage.py prepare-data
       - run: docker compose up -d
       - run: python tools/container_smoke.py
       - name: Optional toolkit installation
@@ -54,6 +54,9 @@ jobs:
           distribution: temurin
           java-version: '17'
       - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-36.1 build-tools;36.0.0'
+          log-accepted-android-sdk-licenses: false
       - uses: gradle/actions/setup-gradle@v4
       - run: chmod +x gradlew && ./gradlew :app:testDebugUnitTest :app:assembleDebug :app:lintDebug --console=plain
         working-directory: android

@@ -28,13 +28,14 @@ oder von anderen Instanzen übernehmen. Noch sind keine Quellen abonniert.
 
 ```bash
 docker compose build
-docker compose run --rm --no-deps --user 0 backend python tools/manage.py prepare-data
+docker compose run --rm --no-deps --user 0 --cap-add CHOWN --cap-add FOWNER backend python tools/manage.py prepare-data
 docker compose up -d
 docker compose exec backend python tools/manage.py doctor
 ```
 
 Der einmalige `prepare-data`-Aufruf setzt nur das dedizierte Datenverzeichnis auf
 die Containerkennung 10001. Der eigentliche Dienst läuft ohne Root. Daten liegen
+Die beiden zusätzlichen Rechte gelten nur für diesen einmaligen Einrichtungsaufruf.
 unter `./data`, Container-Neustarts erhalten sie. `doctor` prüft Gesundheit,
 authentifizierte API und die Ablehnung eines Zugriffs ohne Schlüssel.
 
