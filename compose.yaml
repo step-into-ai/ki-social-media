@@ -1,0 +1,49 @@
+name: ki-social-media
+x-runtime: &runtime
+  build: .
+  image: ki-social-media:0.1.0-beta.1
+  env_file: .env
+  restart: unless-stopped
+  init: true
+  read_only: true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=512m
+  volumes:
+    - ./data:/data
+  security_opt:
+    - no-new-privileges:true
+  cap_drop: [ALL]
+services:
+  backend:
+    <<: *runtime
+    environment:
+      CODY_HOST: 0.0.0.0
+      CODY_PORT: 9131
+      CODY_DATA: /data
+      CODY_REACH_BIN: /usr/local/bin/agent-reach
+      HOME: /data/reach
+    ports:
+      - "127.0.0.1:${CODY_PORT:-9131}:9131"
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:9131/health',timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  ai:
+    <<: *runtime
+    profiles: [ai]
+    command: [python, collector/translator.py]
+    environment:
+      CODY_TRANSLATION_API: http://backend:9131
+    depends_on:
+      backend:
+        condition: service_healthy
+  speech:
+    <<: *runtime
+    profiles: [speech]
+    command: [python, collector/transcriber.py]
+    environment:
+      CODY_SPEECH_API: http://backend:9131
+    depends_on:
+      backend:
+        condition: service_healthy

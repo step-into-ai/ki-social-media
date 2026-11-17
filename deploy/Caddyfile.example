@@ -1,0 +1,4 @@
+# Add this host to YOUR existing Caddy configuration; do not replace other hosts.
+feed.example.org {
+    reverse_proxy 127.0.0.1:9131
+}

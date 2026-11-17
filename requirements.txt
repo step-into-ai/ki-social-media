@@ -1,0 +1,2 @@
+# Optional platform integrations. The HTTP API itself uses Python's standard library.
+agent-reach @ https://github.com/Panniantong/Agent-Reach/releases/download/v1.6.1/agent-reach.zip#sha256=51443d733bcb26064262442083a8f8abf6ba5e3e7df54beebafe98c88be04a60
