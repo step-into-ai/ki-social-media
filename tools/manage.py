@@ -5,6 +5,7 @@ import datetime
 import json
 import os
 import pathlib
+import runpy
 import secrets
 import sqlite3
 import sys
@@ -149,7 +150,8 @@ def main():
         finally:os.chown(folder,10001,10001)
         print('Prepared the dedicated data mount for UID 10001.')
     elif args.command == 'serve':
-        os.execv(sys.executable, [sys.executable, str(ROOT / 'collector/service.py')])
+        sys.path.insert(0,str(ROOT/'collector'))
+        runpy.run_path(str(ROOT/'collector/service.py'),run_name='__main__')
 
 
 if __name__ == '__main__':
