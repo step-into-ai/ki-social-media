@@ -60,11 +60,12 @@
   ],
   "syscalls": [
     {
-      "comment": "Allow Chromium to create its unprivileged sandbox namespaces, as recommended by Playwright.",
+      "comment": "Allow Chromium's unprivileged namespace sandbox. chroot is required inside its new user namespace; no host CAP_SYS_CHROOT is granted.",
       "names": [
         "clone",
         "setns",
-        "unshare"
+        "unshare",
+        "chroot"
       ],
       "action": "SCMP_ACT_ALLOW",
       "args": []

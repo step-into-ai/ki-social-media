@@ -77,7 +77,7 @@ def transcribe_audio(url):
         raise ValueError('Only the queued public YouTube video is accepted.')
     with tempfile.TemporaryDirectory(prefix='ki-social-speech-') as directory:
         target = pathlib.Path(directory)
-        result = subprocess.run([sys.executable, '-m', 'yt_dlp', '--ignore-config', '--no-playlist', '--no-progress',
+        result = subprocess.run([sys.executable, '-m', 'yt_dlp', '--ignore-config', '--no-cache-dir', '--no-playlist', '--no-progress',
             '--no-warnings', '--socket-timeout', '25', '--retries', '0', '--fragment-retries', '0', '--max-filesize', '128M',
             '-f', 'bestaudio', '-x', '--audio-format', 'm4a', '-o', str(target / 'source.%(ext)s'), '--', url],
             capture_output=True, timeout=1200)

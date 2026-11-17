@@ -13,7 +13,8 @@ docker compose exec backend python tools/setup_x.py
 ```
 
 Der Helfer verwendet das reguläre mitgelieferte Chromium. Ein eingechecktes
-Playwright-Seccomp-Profil erlaubt die für dessen Sandbox benötigten User-Namespaces;
+an Playwrights Empfehlung angepasstes Docker-Seccomp-Profil erlaubt die für dessen
+Sandbox benötigten User-Namespaces und den Chroot-Aufruf innerhalb dieses Namespace;
 der Dienst bleibt ohne Root, ohne zusätzliche Linux-Capabilities und mit
 `no-new-privileges`. Kein `--no-sandbox`, privilegierter Container oder offener
 Debugger wird benötigt. Der Host muss unprivilegierte User-Namespaces unterstützen.
