@@ -204,7 +204,7 @@ def reach(channel,action,target,**options):
     args=[str(binary),channel,action,target]
     for key,value in options.items():args+=['--'+key.replace('_','-'),str(value)]
     args+=['--timeout','70']
-    env={**os.environ,'HOME':str(home),'USERPROFILE':str(home),'PYTHONUNBUFFERED':'1'}
+    env={**os.environ,'HOME':str(home),'USERPROFILE':str(home),'XDG_CONFIG_HOME':str(home/'.config'),'XDG_CACHE_HOME':str(home/'.cache'),'PYTHONUNBUFFERED':'1'}
     try:
         with X_LOCK if channel=='twitter' else contextlib.nullcontext():
             p=subprocess.run(args,capture_output=True,text=True,timeout=100,env=env)

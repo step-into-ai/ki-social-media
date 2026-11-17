@@ -141,6 +141,9 @@ def main():
         if folder.is_symlink():raise ValueError('Data must not be a symlink.')
         folder.mkdir(exist_ok=True)
         folder.chmod(0o700);os.chown(folder,10001,10001)
+        model_dir=folder/'tiktok-language'
+        if not model_dir.exists():
+            model_dir.mkdir(mode=0o700);os.chown(model_dir,10001,10001)
         print('Prepared the dedicated data mount for UID 10001.')
     elif args.command == 'serve':
         os.execv(sys.executable, [sys.executable, str(ROOT / 'collector/service.py')])

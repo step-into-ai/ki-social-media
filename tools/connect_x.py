@@ -14,6 +14,8 @@ def main():
     home.mkdir(mode=0o700, parents=True, exist_ok=True)
     os.environ['HOME'] = str(home)
     os.environ['USERPROFILE'] = str(home)
+    os.environ['XDG_CONFIG_HOME'] = str(home / '.config')
+    os.environ['XDG_CACHE_HOME'] = str(home / '.cache')
     print('Only use your own X session. These values grant account access and stay in this instance.')
     print('Copy auth_token and ct0 from x.com in your own browser\'s developer storage view.')
     values = {name: getpass.getpass(name + ': ').strip() for name in ('auth_token', 'ct0')}

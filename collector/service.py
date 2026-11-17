@@ -1,7 +1,7 @@
 """KI Social Media. Standard-library service; metadata only, official embedded players."""
 from __future__ import annotations
 import concurrent.futures, contextlib, datetime as dt, hashlib, hmac, html, json
-import os, pathlib, re, secrets, sqlite3, subprocess, threading, time, urllib.parse, urllib.request, importlib.util
+import os, pathlib, re, secrets, sqlite3, subprocess, threading, time, urllib.parse, urllib.request, importlib.util, shutil
 import xml.etree.ElementTree as ET
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from collections import deque
@@ -230,9 +230,9 @@ def parse_x_items(items, handle):
 
 def collect_x(source):
     home=DATA/'reach'
-    binary=pathlib.Path(os.environ.get('CODY_REACH_BIN',str(home/'venv/bin/agent-reach')))
+    binary=pathlib.Path(os.environ.get('CODY_REACH_BIN',shutil.which('agent-reach') or str(home/'venv/bin/agent-reach')))
     if not binary.is_file():raise ValueError('Die X-Anbindung ist auf dem Server noch nicht eingerichtet.')
-    env={**os.environ,'HOME':str(home),'USERPROFILE':str(home),'PYTHONUNBUFFERED':'1'}
+    env={**os.environ,'HOME':str(home),'USERPROFILE':str(home),'XDG_CONFIG_HOME':str(home/'.config'),'XDG_CACHE_HOME':str(home/'.cache'),'PYTHONUNBUFFERED':'1'}
     try:
         with X_LOCK:
             result=subprocess.run([str(binary),'twitter','tweets',source['handle'],'--limit','25','--timeout','70'],

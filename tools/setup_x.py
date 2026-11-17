@@ -7,6 +7,8 @@ import sys
 
 
 def main():
+    home=pathlib.Path(os.environ.get('CODY_DATA',pathlib.Path(__file__).resolve().parents[1]/'data'))/'reach'
+    os.environ.update(HOME=str(home),USERPROFILE=str(home),XDG_CONFIG_HOME=str(home/'.config'),XDG_CACHE_HOME=str(home/'.cache'))
     for name in ('HOME', 'XDG_CONFIG_HOME', 'XDG_CACHE_HOME'):
         if os.environ.get(name):pathlib.Path(os.environ[name]).mkdir(parents=True, exist_ok=True, mode=0o700)
     chromium = shutil.which('chromium')
@@ -21,6 +23,7 @@ def main():
         probe = subprocess.run([chromium, '--headless=new', '--disable-gpu', '--dump-dom', 'about:blank'],
                                capture_output=True, text=True, timeout=30)
         print('Regular Chromium launch exit code: ' + str(probe.returncode), file=sys.stderr)
+        print(probe.stderr[:4000],file=sys.stderr)
         # Sandboxing diagnostics contain no cookies, URLs, profile state or account contents.
         for line in probe.stderr.splitlines():
             if any(word in line.lower() for word in ('sandbox', 'namespace', 'operation not permitted', 'crashpad', 'fatal', 'read-only', 'permission denied')):

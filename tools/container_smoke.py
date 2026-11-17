@@ -22,6 +22,11 @@ def container(*args):
 
 def main():
     load_env()
+    config=json.loads(subprocess.check_output(['docker','compose','--profile','*','config','--format','json'],cwd=ROOT))
+    assert 'CODY_API_TOKEN' not in config['services']['ai']['environment']
+    assert 'CODY_API_TOKEN' not in config['services']['speech']['environment']
+    assert 'AI_API_KEY' not in config['services']['backend']['environment']
+    assert 'SPEECH_API_KEY' not in config['services']['backend']['environment']
     base = 'http://127.0.0.1:' + os.environ.get('CODY_PORT', '9131')
     token = os.environ['CODY_API_TOKEN']
     def request(path, body=None, credential=None):

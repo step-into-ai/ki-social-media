@@ -2,26 +2,30 @@ name: ki-social-media
 x-runtime: &runtime
   build: .
   image: ki-social-media:0.1.0-beta.1
-  env_file: .env
   restart: unless-stopped
   init: true
   read_only: true
   tmpfs:
     - /tmp:rw,noexec,nosuid,size=512m
-  volumes:
-    - ./data:/data
   security_opt:
     - no-new-privileges:true
   cap_drop: [ALL]
 services:
   backend:
     <<: *runtime
+    volumes:
+      - ./data:/data
     environment:
       CODY_HOST: 0.0.0.0
       CODY_PORT: 9131
       CODY_DATA: /data
       CODY_REACH_BIN: /usr/local/bin/agent-reach
       HOME: /data/reach
+      CODY_API_TOKEN: ${CODY_API_TOKEN:?Run tools/manage.py init first}
+      CODY_TRANSLATOR_TOKEN: ${CODY_TRANSLATOR_TOKEN:?Run tools/manage.py init first}
+      CODY_SPEECH_TOKEN: ${CODY_SPEECH_TOKEN:?Run tools/manage.py init first}
+      PUBLIC_URL: ${PUBLIC_URL:?Configure your own HTTPS address}
+      AI_ENABLED: ${AI_ENABLED:-false}
     security_opt:
       - no-new-privileges:true
       - seccomp=./deploy/browser-seccomp.json
@@ -39,6 +43,12 @@ services:
     command: [python, collector/translator.py]
     environment:
       CODY_TRANSLATION_API: http://backend:9131
+      CODY_TRANSLATOR_TOKEN: ${CODY_TRANSLATOR_TOKEN}
+      AI_BASE_URL: ${AI_BASE_URL:-}
+      AI_MODEL: ${AI_MODEL:-}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_ALLOW_HTTP: ${AI_ALLOW_HTTP:-false}
+      AI_TOKEN_LIMIT_FIELD: ${AI_TOKEN_LIMIT_FIELD-max_tokens}
     depends_on:
       backend:
         condition: service_healthy
@@ -46,8 +56,19 @@ services:
     <<: *runtime
     profiles: [speech]
     command: [python, collector/transcriber.py]
+    volumes:
+      - ./data/tiktok-language:/data/tiktok-language:ro
     environment:
       CODY_SPEECH_API: http://backend:9131
+      CODY_SPEECH_TOKEN: ${CODY_SPEECH_TOKEN}
+      SPEECH_PROVIDER: ${SPEECH_PROVIDER:-disabled}
+      SPEECH_BASE_URL: ${SPEECH_BASE_URL:-}
+      SPEECH_MODEL: ${SPEECH_MODEL:-}
+      SPEECH_API_KEY: ${SPEECH_API_KEY:-}
+      SPEECH_ALLOW_HTTP: ${SPEECH_ALLOW_HTTP:-false}
+      SPEECH_LOCAL_BIN: ${SPEECH_LOCAL_BIN:-/data/tiktok-language/whisper-cli}
+      SPEECH_LOCAL_MODEL: ${SPEECH_LOCAL_MODEL:-/data/tiktok-language/ggml-tiny-q5_1.bin}
+      SPEECH_LOCAL_THREADS: ${SPEECH_LOCAL_THREADS:-2}
     depends_on:
       backend:
         condition: service_healthy
