@@ -3,7 +3,7 @@
 Dein eigener, endlicher Feed für YouTube, TikTok, X und RSS. Mit Android-App,
 selbst gehostetem Backend und einer Anleitung für deinen KI-Agenten.
 
-**[APK herunterladen](https://github.com/step-into-ai/ki-social-media/releases/latest)** ·
+**[APK herunterladen](https://github.com/step-into-ai/ki-social-media/releases/tag/v0.1.0-beta.1)** ·
 **[Installation](docs/INSTALLATION.md)** · **[Agentenanleitung](AGENTS.md)** ·
 **[KI-Anbieter konfigurieren](docs/PROVIDERS.md)**
 

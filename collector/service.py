@@ -453,6 +453,7 @@ def news(source_id=0,unseen=False):
     if not source_id:rows+=newsroom.discovery_news(unseen)
     for row in rows:
         row.setdefault('basis','RSS-/Atom-Feedtext (kann ein Auszug sein)' if row.get('kind')=='rss' else 'Originalbeitrag')
+        if not AI_ENABLED and row.get('translation_status')!='ready':row['translation_status']='original'
     rows.sort(key=lambda r:r.get('published_at') or '',reverse=True)
     # One article URL once, including when syndicated by several feeds.
     result=[];seen=set()
