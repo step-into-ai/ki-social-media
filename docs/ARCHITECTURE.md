@@ -1,5 +1,11 @@
 # Architektur und Adaptervertrag
 
+Das Projekt setzt die Idee „Mein Agent doomscrollt für mich“ als automatisierte
+Recherche und persönliche Vorauswahl um. Ein Einrichtungsagent hilft beim Aufbau
+und bei Anpassungen. Die wiederkehrende Sammlung übernimmt danach das Backend;
+gewünschte KI-Aufgaben übernehmen die konfigurierten Worker. Die Android-App ist
+der Ort, an dem der Nutzer die vorbereiteten Inhalte bewusst auswählt.
+
 ```text
 Android-App → eigene HTTPS-Adresse → Backend/API → SQLite im eigenen Datenvolume
                                      ├─ YouTube/TikTok/RSS-Sammler

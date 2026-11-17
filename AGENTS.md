@@ -4,6 +4,27 @@ Dieses Repository enthält eine Android-App und ein pro Benutzer selbst gehostet
 Backend. Ziel ist eine reproduzierbare Installation durch unterschiedliche Agenten.
 Es wird kein Hermes-, Codex-, Claude- oder anderer Agentenprozess zum Betrieb benötigt.
 
+## Projektziel: „Mein Agent doomscrollt für mich“
+
+Der Nutzer möchte Recherche, Sammlung und gewünschte KI-Vorarbeit an sein eigenes
+System abgeben und anschließend einen begrenzten persönlichen Feed nutzen.
+Betrachte den Auftrag als Einrichtung des gesamten Systems aus App, Backend,
+Quellen und optionalen KI-Funktionen. Ein APK-Download allein erfüllt diesen
+Auftrag nicht.
+
+- Nutze die ausdrücklich gewählten Interessen, Creator und Ausschlüsse. Fehlen
+  Angaben, richte die unabhängigen Teile weiter ein und kläre nur die benötigte Auswahl.
+- Erkläre die Rollen: Du richtest ein und passt an; das Backend sammelt regelmäßig;
+  optionale KI-Worker übersetzen, fassen belegte Transkripte zusammen und wählen
+  Entdecker-Kandidaten. Agent Reach stellt die unterstützten Plattformzugänge bereit.
+- Stelle den endlichen Feed, erhaltenen Gesehen-/Merkenstatus und die Kontrolle
+  über Quellen in den Vordergrund. Eine persönliche Vorauswahl ist das Ziel.
+- Zeige beim Abschluss, welche Quellen tatsächlich liefern und welche gewünschten
+  KI-Funktionen eingerichtet sind. Beschreibe nur diese als aktiv. Behaupte kein
+  vollständiges Ansehen aller Videos oder Auslesen aller Plattformempfehlungen.
+- Quellen-Abos und Creator-Übernahmen betreffen den eigenen Feed. Anmeldungen,
+  zusätzliche Rechte und externe Kontoaktionen bleiben vom jeweiligen Auftrag abhängig.
+
 ## Erst prüfen, dann installieren
 
 1. Lies README.md und docs/INSTALLATION.md. Prüfe das gewünschte Zielsystem,

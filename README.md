@@ -1,7 +1,12 @@
 # KI Social Media
 
-Dein eigener, endlicher Feed für YouTube, TikTok, X und RSS. Mit Android-App,
-selbst gehostetem Backend und einer Anleitung für deinen KI-Agenten.
+**„Mein Agent doomscrollt für mich.“**
+
+Du legst deine Interessen und Quellen fest. KI Social Media übernimmt das Sammeln
+und auf Wunsch die KI-gestützte Vorauswahl, Übersetzung und Zusammenfassung.
+Du bekommst einen eigenen, endlichen Feed für YouTube, TikTok, X und RSS.
+Zum Projekt gehören Android-App, selbst gehostetes Backend und die Anleitung,
+mit der dein Agent das Ganze für dich einrichtet und an deine Umgebung anpasst.
 
 **[APK herunterladen](https://github.com/step-into-ai/ki-social-media/releases/tag/v0.1.0-beta.1)** ·
 **[Installation](docs/INSTALLATION.md)** · **[Agentenanleitung](AGENTS.md)** ·
@@ -9,6 +14,29 @@ selbst gehostetem Backend und einer Anleitung für deinen KI-Agenten.
 
 Erste öffentliche Beta: **0.1.0-beta.1**. Die App benötigt ein eigenes Backend.
 Es gibt keinen mitgelieferten Gemeinschaftsserver und kein zentrales Benutzerkonto.
+
+## Der Agent übernimmt die Vorarbeit
+
+Die Idee des gesamten Projekts: **Recherche und Vorauswahl auslagern, selbst
+bewusst auswählen, was du lesen oder ansehen möchtest.**
+
+- **Deine Interessen bestimmen den Feed:** Du wählst Creator, Themen und
+  Ausschlüsse; dein Agent hilft dir bei der Einrichtung dieser Auswahl.
+- **Das System sammelt für dich:** Das Backend ruft deine eingerichteten Quellen
+  regelmäßig ab. Der optionale Entdecker sucht zusätzlich nach passenden neuen
+  Creatorn und Inhalten außerhalb deiner Abos.
+- **KI bereitet Inhalte auf Wunsch vor:** Mit einem eigenen konfigurierten
+  Anbieter werden Nachrichtentexte übersetzt, Videos anhand verfügbarer
+  Transkripte zusammengefasst und Entdecker-Kandidaten ausgewählt.
+- **Du bekommst eine begrenzte Auswahl:** Gesehene Inhalte verschwinden aus dem
+  normalen Feed, Creator lassen sich ausblenden und die Auswahl hat ein Ende.
+
+„Doomscrollen für dich“ beschreibt diese automatisierte Recherche und Vorarbeit.
+Die Sammlung läuft im Backend, KI-Aufgaben laufen bei aktivierter Funktion in
+eigenen Workern. Dein Einrichtungsagent muss dafür nicht dauerhaft in einem Chat
+weiterlaufen. Welche Inhalte du ansiehst und welche Creator du übernimmst,
+entscheidest weiterhin du. Die Einrichtung bleibt unabhängig von einem bestimmten
+Agenten, KI-Anbieter oder Modell.
 
 ## Was die App bietet
 
@@ -56,9 +84,13 @@ Abos, gespeicherte Inhalte oder übernommene Anmeldungen.
 Du kannst deinem Agenten diesen Auftrag geben:
 
 > Installiere KI Social Media aus https://github.com/step-into-ai/ki-social-media.
-> Lies zuerst AGENTS.md. Nutze meinen vorgesehenen Server und vorhandenen
-> HTTPS-Zugang. Starte zunächst ohne KI-Anbieter. Stelle mir nach den Prüfungen
-> die APK und die private Kopplung bereit. Verändere keine anderen Dienste.
+> Mein Ziel: Der Agent übernimmt für mich die Recherche und Vorauswahl, damit ich
+> weniger selbst durch die Plattformen scrollen muss. Lies zuerst AGENTS.md.
+> Nutze meinen vorgesehenen Server und vorhandenen HTTPS-Zugang. Hilf mir, meine
+> gewählten Creator und Themen einzurichten. Aktiviere gewünschte KI-Funktionen
+> mit meinem gewählten Anbieter; ohne KI-Zugang nutze den Basisbetrieb.
+> Stelle mir nach den Prüfungen die APK und die private Kopplung bereit.
+> Verändere keine anderen Dienste.
 
 Der Agent hilft bei der Einrichtung. Danach läuft das Backend als normaler Dienst
 weiter, auch ohne laufenden Agenten. Konfiguration und eigene Anpassungen sind in
