@@ -82,7 +82,9 @@ SNAPSHOT=r'''(platform=>{
  const dialog=[...document.querySelectorAll('[role="dialog"],dialog')].filter(visible).map(e=>e.innerText).join('\n');
  const password=!![...document.querySelectorAll('input[type="password"]')].find(visible);
  const gated=items.length===0&&(/log in to continue|sign in to continue|melde dich an|anmelden, um/i.test(dialog)||password||/\/i\/flow\/login|\/login\b/.test(location.pathname));
- const challenge=/verify you are human|sicherheitsüberprüfung|verify to continue|captcha|drag the puzzle|complete the puzzle/i.test(dialog||text.slice(0,3500));
+ const gateText=dialog||(items.length===0?text.slice(0,3500):'');
+ const challenge=/verify you are human|sicherheitsüberprüfung|verify to continue|captcha|drag the puzzle|complete the puzzle/i.test(gateText)
+  ||[...document.querySelectorAll('iframe[src*="captcha"],#captcha_container')].some(visible);
  const scrolls=[...document.querySelectorAll('main,[role="main"],[role="feed"],div')].slice(0,2000).filter(visible).map(e=>e.scrollTop||0);
  return {url:location.href,title:document.title,items:items.slice(0,30),scroll:Math.max(scrollY,...scrolls,0),
   viewport:{width:innerWidth,height:innerHeight},status:performance.getEntriesByType('navigation')[0]?.responseStatus||0,

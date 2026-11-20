@@ -16,7 +16,7 @@ def main():
     try:
         session=FixtureSession();session.call('Emulation.setDeviceMetricsOverride',{'width':1280,'height':900,'deviceScaleFactor':1,'mobile':False})
         frame=session.call('Page.getFrameTree')['frameTree']['frame']['id']
-        cards=''.join('<article data-testid="tweet" style="height:260px;border:1px solid gray"><a href="https://x.com/example/status/'+str(2120000000000000000+i)+'">fixture link</a><div data-testid="tweetText">Synthetic AI workflow example '+str(i)+'</div></article>' for i in range(24))
+        cards=''.join('<article data-testid="tweet" style="height:260px;border:1px solid gray"><a href="https://x.com/example/status/'+str(2120000000000000000+i)+'">fixture link</a><div data-testid="tweetText">Synthetic AI workflow and CAPTCHA discussion example '+str(i)+'</div></article>' for i in range(24))
         hidden='<article data-testid="tweet" style="display:none"><a href="https://x.com/example/status/2129999999999999999">hidden fixture</a></article>'
         session.call('Page.setDocumentContent',{'frameId':frame,'html':'<!doctype html><html><body>'+cards+hidden+'</body></html>'})
         result=b.scan_loop(session,'x','fixture',max_steps=3,max_seconds=30,dwell=1)
