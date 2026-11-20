@@ -26,6 +26,11 @@ services:
       CODY_SPEECH_TOKEN: ${CODY_SPEECH_TOKEN:?Run tools/manage.py init first}
       PUBLIC_URL: ${PUBLIC_URL:?Configure your own HTTPS address}
       AI_ENABLED: ${AI_ENABLED:-false}
+      CODY_BROWSER_DISCOVERY: ${CODY_BROWSER_DISCOVERY:-false}
+      CODY_BROWSER_PLATFORMS: ${CODY_BROWSER_PLATFORMS:-youtube,x,tiktok}
+      CODY_BROWSER_MAX_STEPS: ${CODY_BROWSER_MAX_STEPS:-6}
+      CODY_BROWSER_MAX_SECONDS: ${CODY_BROWSER_MAX_SECONDS:-60}
+      CODY_BROWSER_FALLBACK_SEARCH: ${CODY_BROWSER_FALLBACK_SEARCH:-true}
     security_opt:
       - no-new-privileges:true
       - seccomp=./deploy/browser-seccomp.json

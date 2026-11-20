@@ -17,6 +17,13 @@ Es gibt keinen mitgelieferten Gemeinschaftsserver und kein zentrales Benutzerkon
 
 ## Der Agent übernimmt die Vorarbeit
 
+**Neu im Repository:** Der optionale [Browser-Entdecker](docs/BROWSER-DISCOVERY.md)
+scrollt tatsächlich durch gerenderte X-, YouTube- und TikTok-Feeds. Sichtbare Karten
+und neu nachgeladene Inhalte werden erfasst und anschließend von der konfigurierten
+KI ausgewählt. Scroll-Budget, Herkunft und mögliche Plattformhindernisse sind prüfbar.
+Die vorhandene APK ist kompatibel; zum Aktivieren wird der aktuelle Backend-Quellstand
+benötigt, nicht das ältere Beta-Backend-ZIP.
+
 Die Idee des gesamten Projekts: **Recherche und Vorauswahl auslagern, selbst
 bewusst auswählen, was du lesen oder ansehen möchtest.**
 
@@ -31,7 +38,8 @@ bewusst auswählen, was du lesen oder ansehen möchtest.**
 - **Du bekommst eine begrenzte Auswahl:** Gesehene Inhalte verschwinden aus dem
   normalen Feed, Creator lassen sich ausblenden und die Auswahl hat ein Ende.
 
-„Doomscrollen für dich“ beschreibt diese automatisierte Recherche und Vorarbeit.
+„Doomscrollen für dich“ umfasst diese automatisierte Recherche und Vorarbeit; mit
+aktiviertem Browser-Entdecker auch echtes begrenztes Scrollen durch sichtbare Feeds.
 Die Sammlung läuft im Backend, KI-Aufgaben laufen bei aktivierter Funktion in
 eigenen Workern. Dein Einrichtungsagent muss dafür nicht dauerhaft in einem Chat
 weiterlaufen. Welche Inhalte du ansiehst und welche Creator du übernimmst,
