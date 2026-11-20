@@ -229,10 +229,11 @@ def parse_x_items(items, handle):
 
 
 def collect_x(source):
+    if newsroom.browser_handoff_active():raise ValueError('Der Browser wird gerade persönlich bedient.')
     home=DATA/'reach'
     binary=pathlib.Path(os.environ.get('CODY_REACH_BIN',shutil.which('agent-reach') or str(home/'venv/bin/agent-reach')))
     if not binary.is_file():raise ValueError('Die X-Anbindung ist auf dem Server noch nicht eingerichtet.')
-    env={**os.environ,'HOME':str(home),'USERPROFILE':str(home),'XDG_CONFIG_HOME':str(home/'.config'),'XDG_CACHE_HOME':str(home/'.cache'),'PYTHONUNBUFFERED':'1'}
+    env=newsroom.browser_environment(home);env['PYTHONUNBUFFERED']='1'
     try:
         with X_LOCK:
             result=subprocess.run([str(binary),'twitter','tweets',source['handle'],'--limit','25','--timeout','70'],

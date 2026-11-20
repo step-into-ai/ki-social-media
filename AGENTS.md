@@ -19,6 +19,11 @@ Auftrag nicht.
   Entdecker-Kandidaten. Agent Reach stellt die unterstützten Plattformzugänge bereit.
 - Stelle den endlichen Feed, erhaltenen Gesehen-/Merkenstatus und die Kontrolle
   über Quellen in den Vordergrund. Eine persönliche Vorauswahl ist das Ziel.
+- Optionaler echter Browser-Entdecker: docs/BROWSER-DISCOVERY.md. Nur die eigenen
+  vorbereiteten Browserprofile verwenden. Login/Altersprüfung/Challenges erledigt
+  der Benutzer; während persönlicher Bedienung bleiben automatische Zugriffe pausiert.
+  Echte Scroll-Bewegung und neu sichtbare Karten prüfen. Such-Fallback nicht als
+  Browser-Fund ausgeben. Keine App-/Anbietertokens an Browser-Kindprozesse weitergeben.
 - Zeige beim Abschluss, welche Quellen tatsächlich liefern und welche gewünschten
   KI-Funktionen eingerichtet sind. Beschreibe nur diese als aktiv. Behaupte kein
   vollständiges Ansehen aller Videos oder Auslesen aller Plattformempfehlungen.

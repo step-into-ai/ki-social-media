@@ -7,6 +7,7 @@ import sys
 
 
 def main():
+    for key in ('CODY_API_TOKEN','CODY_TRANSLATOR_TOKEN','CODY_SPEECH_TOKEN','AI_API_KEY','SPEECH_API_KEY'):os.environ.pop(key,None)
     home=pathlib.Path(os.environ.get('CODY_DATA',pathlib.Path(__file__).resolve().parents[1]/'data'))/'reach'
     os.environ.update(HOME=str(home),USERPROFILE=str(home),XDG_CONFIG_HOME=str(home/'.config'),XDG_CACHE_HOME=str(home/'.cache'))
     for name in ('HOME', 'XDG_CONFIG_HOME', 'XDG_CACHE_HOME'):

@@ -151,9 +151,9 @@ def detect_language(video):
     temporary=cache.with_suffix('.tmp');temporary.write_text(json.dumps(result));temporary.chmod(0o600);temporary.replace(cache)
     return result
 
-def hydrate(item):
+def hydrate(item,budget=None):
     handle=item['handle'];ident=item['url'].rsplit('/',1)[-1]
-    data=parse_profile(profile(handle,max_age=21600),handle)
+    data=parse_profile(profile(handle,max_age=21600,budget=budget),handle)
     video=next((v for v in data['videoList'] if str(v.get('id'))==ident and v.get('authorUniqueId','').lower()==handle and not v.get('privateItem')),None)
     if not video:raise ValueError('TikTok-Video nicht mehr in der geprüften öffentlichen Liste.')
     proof=detect_language(video)

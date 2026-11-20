@@ -4,6 +4,7 @@ import contextlib, datetime as dt, email.utils, hashlib, html, http.client, ipad
 import json, os, pathlib, re, socket, ssl, subprocess, threading, time, urllib.parse, secrets, importlib.util, sys, shutil
 import xml.etree.ElementTree as ET
 from html.parser import HTMLParser
+import uuid
 
 DB = None
 DATA = None
@@ -15,12 +16,16 @@ PARSE_TAB = None
 TIKTOK_RAW = None
 _tiktok_spec=importlib.util.spec_from_file_location('cody_tiktok_discovery',pathlib.Path(__file__).with_name('tiktok_discovery.py'))
 tiktok=importlib.util.module_from_spec(_tiktok_spec);_tiktok_spec.loader.exec_module(tiktok)
+_browser_spec=importlib.util.spec_from_file_location('cody_browser_discovery',pathlib.Path(__file__).with_name('browser_discovery.py'))
+browser_discovery=importlib.util.module_from_spec(_browser_spec);_browser_spec.loader.exec_module(browser_discovery)
+BROWSER_BATCH={}
 LOCK = threading.Lock()
 BUSY = False
 DEFAULTS = {'enabled': False, 'topics': ['KI', 'Automatisierung', 'praktische KI-Werkzeuge'],
             'exclude': [], 'platforms': ['youtube', 'x', 'tiktok'], 'runs_per_day': 2, 'max_suggestions': 3}
 
 def initialize(c):
+    BROWSER_BATCH.clear()
     tiktok.DB=DB;tiktok.DATA=DATA;tiktok.RAW=TIKTOK_RAW;tiktok.DISCOVERY_BUDGET=[2]
     columns = {r['name'] for r in c.execute('PRAGMA table_info(sources)')}
     if 'delivery' not in columns:
@@ -49,6 +54,9 @@ def initialize(c):
       UNIQUE(platform,handle));
     CREATE TABLE IF NOT EXISTS muted_creators (
       platform TEXT NOT NULL, handle TEXT NOT NULL, PRIMARY KEY(platform,handle));
+    CREATE TABLE IF NOT EXISTS browser_scans (
+      id TEXT PRIMARY KEY,platform TEXT NOT NULL,topic TEXT NOT NULL,created_at REAL NOT NULL,
+      metrics_json TEXT NOT NULL,items_json TEXT NOT NULL DEFAULT '[]');
     CREATE TABLE IF NOT EXISTS discovery_content (
       suggestion_id TEXT PRIMARY KEY REFERENCES suggestions(id) ON DELETE CASCADE,
       platform TEXT NOT NULL, external_id TEXT NOT NULL, kind TEXT NOT NULL, format TEXT NOT NULL DEFAULT '',
@@ -59,6 +67,9 @@ def initialize(c):
       seen INTEGER NOT NULL DEFAULT 0, favorite INTEGER NOT NULL DEFAULT 0, status TEXT NOT NULL DEFAULT 'pending',
       message TEXT NOT NULL DEFAULT '', next_at REAL NOT NULL DEFAULT 0, updated_at TEXT);
     ''')
+    suggestion_columns={r['name'] for r in c.execute('PRAGMA table_info(suggestions)')}
+    for name,definition in {'discovered_via':"TEXT NOT NULL DEFAULT 'index'",'browser_scan_id':"TEXT NOT NULL DEFAULT ''"}.items():
+        if name not in suggestion_columns:c.execute('ALTER TABLE suggestions ADD COLUMN '+name+' '+definition)
     columns={r['name'] for r in c.execute('PRAGMA table_info(summaries)')}
     for name,definition in {'basis':"TEXT NOT NULL DEFAULT 'Öffentliche YouTube-Untertitel'",'speech_lease':"TEXT NOT NULL DEFAULT ''"}.items():
         if name not in columns:c.execute('ALTER TABLE summaries ADD COLUMN '+name+' '+definition)
@@ -200,11 +211,12 @@ def set_settings(body):
     return data
 
 def reach(channel,action,target,**options):
+    if channel=='twitter' and browser_handoff_active():raise ValueError('Der Browser wird gerade persönlich bedient.')
     home=DATA()/'reach';binary=pathlib.Path(os.environ.get('CODY_REACH_BIN',shutil.which('agent-reach') or str(home/'venv/bin/agent-reach')))
     args=[str(binary),channel,action,target]
     for key,value in options.items():args+=['--'+key.replace('_','-'),str(value)]
     args+=['--timeout','70']
-    env={**os.environ,'HOME':str(home),'USERPROFILE':str(home),'XDG_CONFIG_HOME':str(home/'.config'),'XDG_CACHE_HOME':str(home/'.cache'),'PYTHONUNBUFFERED':'1'}
+    env=browser_environment(home);env['PYTHONUNBUFFERED']='1'
     try:
         with X_LOCK if channel=='twitter' else contextlib.nullcontext():
             p=subprocess.run(args,capture_output=True,text=True,timeout=100,env=env)
@@ -317,7 +329,113 @@ def candidate(platform,item,topic):
       'creator':str(item.get('author') or handle)[:200], 'profile_url':profile,'url':canonical(url),
       'title':plain(item.get('title') or evidence[:140])[:300], 'evidence':evidence,
       'published_at':date,'topic':topic,'language':str(raw.get('language') or ''),
+      'discovered_via':raw.get('discovered_via','index'),'browser_scan_id':raw.get('browser_scan_id',''),
       'basis':'Beitragstext' if platform=='x' else 'Titel und Beschreibung'}
+
+def browser_options():
+    return {'enabled':os.environ.get('CODY_BROWSER_DISCOVERY','false').lower()=='true',
+      'platforms':[p for p in os.environ.get('CODY_BROWSER_PLATFORMS','youtube,x,tiktok').split(',') if p in browser_discovery.PLATFORMS],
+      'max_steps':browser_discovery.bounded(os.environ.get('CODY_BROWSER_MAX_STEPS'),6,1,12),
+      'max_seconds':browser_discovery.bounded(os.environ.get('CODY_BROWSER_MAX_SECONDS'),60,10,120),
+      'fallback_search':os.environ.get('CODY_BROWSER_FALLBACK_SEARCH','true').lower()=='true'}
+
+def browser_handoff_active():
+    data=DATA() if callable(DATA) else pathlib.Path(os.environ.get('CODY_DATA',pathlib.Path(__file__).resolve().parents[1]/'data'))
+    path=data/'browser-handoff.active'
+    if not path.is_file():return False
+    try:return json.loads(path.read_text()).get('expires_at',0)>time.time()
+    except FileNotFoundError:return False
+    except (ValueError,OSError,TypeError):return True
+
+def browser_environment(home):
+    keep={'PATH','LANG','LC_ALL','USER','LOGNAME','TMPDIR','TMP','TEMP','LD_LIBRARY_PATH','DISPLAY','XAUTHORITY',
+          'XDG_CONFIG_HOME','XDG_CACHE_HOME','XDG_RUNTIME_DIR','SSL_CERT_FILE','SSL_CERT_DIR','SYSTEMROOT','WINDIR','REACH_BROWSER_PORT'}
+    env={key:value for key,value in os.environ.items() if key in keep}
+    data=DATA() if callable(DATA) else pathlib.Path(home).parent
+    env.update(HOME=str(home),USERPROFILE=str(home),CODY_DATA=str(data),XDG_CONFIG_HOME=str(pathlib.Path(home)/'.config'),XDG_CACHE_HOME=str(pathlib.Path(home)/'.cache'))
+    return env
+
+def browser_topic_match(text,topics):
+    words=set(re.findall(r'\w+',text.casefold().replace('_',' ')))
+    requested=set(re.findall(r'\w+',' '.join(topics).casefold()))
+    if requested & {'ki','ai','intelligenz','automatisierung'}:
+        requested.update({'ki','ai','chatgpt','claude','codex','llm','openai','künstlicheintelligenz','automatisierung','automation'})
+    requested-={'praktische','praktisch','themen','the','and','und','für','mit','oder'}
+    compact=re.sub(r'\W','',' '.join(words))
+    return bool(words & requested) or any(len(topic)>3 and re.sub(r'\W','',topic.casefold()) in compact for topic in topics)
+
+def collect_browser(platform,topic):
+    options=browser_options()
+    if not options['enabled'] or platform not in options['platforms']:return None
+    if browser_handoff_active():raise ValueError('Der Browser wird gerade persönlich bedient.')
+    if platform in BROWSER_BATCH:
+        if BROWSER_BATCH[platform]['metrics'].get('stop_reason')=='human_control_active':raise ValueError('Der Browser wird gerade persönlich bedient.')
+        return BROWSER_BATCH[platform].get('entries')
+    home=DATA()/'reach';python=home/'venv/bin/python'
+    if not python.is_file():python=pathlib.Path(sys.executable)
+    args=[str(python),str(pathlib.Path(browser_discovery.__file__)),'--platform',platform,'--topic',topic,
+          '--steps',str(options['max_steps']),'--seconds',str(options['max_seconds'])]
+    env=browser_environment(home)
+    try:
+        with X_LOCK:
+            process=subprocess.run(args,capture_output=True,text=True,timeout=options['max_seconds']+120,env=env)
+        if process.returncode or len(process.stdout)>2000000:raise ValueError()
+        result=json.loads(process.stdout)
+        if not isinstance(result,dict) or not isinstance(result.get('metrics'),dict) or not isinstance(result.get('items'),list):raise ValueError()
+    except Exception:
+        result={'items':[],'metrics':{'id':uuid.uuid4().hex,'platform':platform,'topic':topic,'status':'error','stop_reason':'browser_unavailable',
+                                    'scroll_steps':0,'new_items_after_scroll':0,'viewport_changed':False,'items_observed':0}}
+    metrics=result['metrics'];metrics.setdefault('id',uuid.uuid4().hex)
+    if not re.fullmatch(r'[a-f0-9]{32}',str(metrics['id'])):metrics['id']=uuid.uuid4().hex
+    rows=[browser_discovery.canonical_item(platform,row) for row in result['items'][:40]];rows=[row for row in rows if row]
+    # Preserve only source-controlled observation metadata; no page-authored instructions or commands.
+    for item,raw in zip(rows,[r for r in result['items'][:40] if browser_discovery.canonical_item(platform,r)]):
+        observation=raw.get('raw') if isinstance(raw.get('raw'),dict) else {}
+        item['raw'].update(discovered_via='browser_scroll',browser_scan_id=metrics['id'],observed_step=browser_discovery.bounded(observation.get('observed_step'),0,0,12))
+    with DB() as c:
+        c.execute('INSERT OR REPLACE INTO browser_scans VALUES(?,?,?,?,?,?)',(metrics['id'],platform,topic,time.time(),json.dumps(metrics),json.dumps(rows)))
+        c.execute('DELETE FROM browser_scans WHERE created_at<?',(time.time()-30*86400,))
+    BROWSER_BATCH[platform]={'metrics':metrics,'entries':None}
+    if metrics.get('stop_reason')=='human_control_active':raise ValueError('Der Browser wird gerade persönlich bedient.')
+    if metrics.get('status')!='ok' or not metrics.get('viewport_changed') or metrics.get('new_items_after_scroll',0)<1:
+        if options['fallback_search']:
+            metrics['search_fallback_used']=True
+            with DB() as c:c.execute('UPDATE browser_scans SET metrics_json=? WHERE id=?',(json.dumps(metrics),metrics['id']))
+            return None
+        raise ValueError('Browser-Feed derzeit nicht verfügbar: '+str(metrics.get('stop_reason','unavailable')))
+    entries=[]
+    # Newly exposed cards are processed first, within a separate metadata budget.
+    for row in sorted(rows,key=lambda r:r['raw'].get('observed_step',0),reverse=True)[:6]:
+        try:
+            if platform=='x':entry=row
+            elif platform=='youtube':
+                meta=video_metadata(row['url'])
+                if meta['language']!='de':continue
+                entry={'url':row['url'],'title':meta['title'],'text':meta['description'] or row['text'],
+                  'author':meta['creator'],'published_at':meta['published_at'],'raw':{**row['raw'],'channel_id':meta['channel_id'],'language':meta['language']}}
+            else:
+                if not browser_topic_match(row['text'],settings()['topics']):continue
+                match=re.fullmatch(r'https://www.tiktok.com/@([\w.]+)/video/\d+',row['url'])
+                if not match:continue
+                handle=match[1].lower()
+                with DB() as c:
+                    if c.execute("SELECT 1 FROM sources WHERE platform='tiktok' AND lower(handle)=?",(handle,)).fetchone() or c.execute("SELECT 1 FROM muted_creators WHERE platform='tiktok' AND handle=?",(handle,)).fetchone():continue
+                meta=tiktok.hydrate({'handle':handle,'url':row['url'],'title':row['title']},budget=tiktok.DISCOVERY_BUDGET)
+                if meta.get('status') or meta['language']!='de':continue
+                entry={'url':row['url'],'title':meta['title'],'text':meta['title'],'author':row.get('author') or handle,'raw':{**row['raw'],'language':'de'}}
+            parsed=candidate(platform,entry,topic)
+            if not parsed:continue
+            with DB() as c:
+                if not allowed_candidate(c,parsed,settings()):continue
+            entries.append(entry)
+        except Exception:continue
+    BROWSER_BATCH[platform]['entries']=entries
+    if not entries and options['fallback_search']:
+        metrics.update(search_fallback_used=True,fallback_reason='no_eligible_browser_candidates')
+        with DB() as c:c.execute('UPDATE browser_scans SET metrics_json=? WHERE id=?',(json.dumps(metrics),metrics['id']))
+        BROWSER_BATCH[platform]['entries']=None
+        return None
+    return entries
 
 def recent_youtube_search(query):
     home=DATA()/'reach';env={**os.environ,'HOME':str(home),'USERPROFILE':str(home)}
@@ -331,6 +449,8 @@ def recent_youtube_search(query):
     except Exception:raise ValueError('Die aktuelle YouTube-Suche ist derzeit nicht verfügbar.') from None
 
 def collect_discovery(platform,topic):
+    browser_entries=collect_browser(platform,topic)
+    if browser_entries is not None:return browser_entries
     query={'KI':'Künstliche Intelligenz AI Tools','Automatisierung':'KI Automatisierung Agenten',
            'praktische KI-Werkzeuge':'KI Tools Claude Codex'}.get(topic,topic)
     if platform=='x':
@@ -378,6 +498,7 @@ def allowed_candidate(c,item,config):
     return True
 
 def discover(force=False,platforms=None):
+    BROWSER_BATCH.clear()
     config=settings()
     if not config['enabled']:return
     if platforms is not None:
@@ -387,7 +508,7 @@ def discover(force=False,platforms=None):
     # UTC slots avoid a timezone-data dependency on Windows. Stable unique slot also survives restarts/DST.
     now=dt.datetime.now(dt.timezone.utc)
     slot=('manual:'+str(int(time.time()//600))+(':'+','.join(config['platforms']) if platforms is not None else '')) if force else now.date().isoformat()+':'+str(now.hour//(24//config['runs_per_day']))
-    if force:slot+=':'+hashlib.sha256(pathlib.Path(__file__).read_bytes()+pathlib.Path(tiktok.__file__).read_bytes()).hexdigest()[:12]
+    if force:slot+=':'+hashlib.sha256(pathlib.Path(__file__).read_bytes()+pathlib.Path(tiktok.__file__).read_bytes()+pathlib.Path(browser_discovery.__file__).read_bytes()).hexdigest()[:12]
     with DB() as c:
         c.execute('BEGIN IMMEDIATE')
         c.execute("UPDATE discovery_runs SET status='interrupted',finished_at=?,message='Abruf unterbrochen; nächster regulärer Lauf folgt.' WHERE status='collecting' AND next_at<=?",(UTC(),time.time()))
@@ -409,6 +530,11 @@ def discover(force=False,platforms=None):
                         if allowed:candidates[item['id']]=item;count+=1
             except Exception as e:errors.append(str(e)[:250]);break
         states[platform]={'status':'error' if errors else 'ok','candidates':count,'message':' '.join(errors)}
+        if platform in BROWSER_BATCH:
+            metrics=BROWSER_BATCH[platform]['metrics'];states[platform]['browser']=metrics
+            if metrics.get('status')=='ok':states[platform]['message']='Browser: '+str(metrics.get('scroll_steps',0))+' Scroll-Schritte, '+str(metrics.get('new_items_after_scroll',0))+' zusätzliche sichtbare Inhalte.'
+            elif not errors:states[platform].update(status='partial',message='Browser: '+str(metrics.get('stop_reason','unavailable'))+'; regulärer Suchabruf verwendet.')
+            if metrics.get('status')=='ok' and metrics.get('search_fallback_used'):states[platform]['message']+=' Suchabruf für passende Zusatzfunde verwendet.'
         if platform=='tiktok' and tiktok.state().get('cooldown_until',0)>time.time():
             states[platform].update(status='partial' if count else 'error',message='TikTok-Pause aktiv; vorhandener Cache bleibt nutzbar.')
     # Interleave platforms before the cap, so X cannot fill every model candidate slot.
@@ -492,9 +618,9 @@ def complete_job(body):
             if not item or item['id'] in seen or not isinstance(reason,str) or not 20<=len(reason)<=800:raise ValueError('Ungültiger Vorschlag.')
             seen.add(item['id'])
             if not config['enabled'] or item['platform'] not in config['platforms'] or not allowed_candidate(c,item,config):continue
-            saved+=c.execute('''INSERT OR IGNORE INTO suggestions(id,run_id,platform,handle,creator,profile_url,url,title,evidence,reason,published_at,topic,created_at)
-              VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)''',(item['id'],ident,item['platform'],item['handle'],item['creator'],item['profile_url'],item['url'],
-                item['title'],item['evidence'],reason,item['published_at'],item['topic'],UTC())).rowcount
+            saved+=c.execute('''INSERT OR IGNORE INTO suggestions(id,run_id,platform,handle,creator,profile_url,url,title,evidence,reason,published_at,topic,created_at,discovered_via,browser_scan_id)
+              VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',(item['id'],ident,item['platform'],item['handle'],item['creator'],item['profile_url'],item['url'],
+                item['title'],item['evidence'],reason,item['published_at'],item['topic'],UTC(),item.get('discovered_via','index'),item.get('browser_scan_id',''))).rowcount
         c.execute("UPDATE discovery_runs SET status='ready',finished_at=?,message=? WHERE id=?",(UTC(),str(saved)+(' geprüfter Vorschlag.' if saved==1 else ' geprüfte Vorschläge.'),ident))
         return saved
 
@@ -503,7 +629,8 @@ def discovery_status():
         runs=[dict(r) for r in c.execute('SELECT id,slot,started_at,finished_at,status,message,platforms_json FROM discovery_runs ORDER BY id DESC LIMIT 5')]
         muted=[dict(r) for r in c.execute('SELECT * FROM muted_creators')]
     for r in runs:r['platforms']=json.loads(r.pop('platforms_json'))
-    return {'settings':settings(),'runs':runs,'muted_creators':muted,'refreshing':BUSY,'cadence':'UTC-Zeitfenster: täglich oder alle zwölf Stunden; erster Lauf beim Start.'}
+    with DB() as c:scans=[json.loads(r[0]) for r in c.execute('SELECT metrics_json FROM browser_scans ORDER BY created_at DESC LIMIT 9')]
+    return {'settings':settings(),'runs':runs,'muted_creators':muted,'refreshing':BUSY,'browser':{**browser_options(),'recent_scans':scans},'cadence':'UTC-Zeitfenster: täglich oder alle zwölf Stunden; erster Lauf beim Start.'}
 
 def suggestions():
     config=settings()
@@ -709,7 +836,7 @@ def discovery_rows():
     if not settings()['enabled']:return []
     eligible={s['id'] for s in suggestions()}
     with DB() as c:
-        rows=[dict(r) for r in c.execute('''SELECT d.*,s.creator,s.handle,s.published_at,s.reason FROM discovery_content d
+        rows=[dict(r) for r in c.execute('''SELECT d.*,s.creator,s.handle,s.published_at,s.reason,s.discovered_via,s.browser_scan_id FROM discovery_content d
           JOIN suggestions s ON s.id=d.suggestion_id WHERE d.status='ready' ORDER BY s.published_at DESC''')]
     return [r for r in rows if r['suggestion_id'] in eligible]
 
